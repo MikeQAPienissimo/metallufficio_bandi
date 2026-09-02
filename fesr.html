@@ -17,14 +17,14 @@ site.addEventListener('load',()=>{
     if(!d.getElementById('simulatore')){
       const target=d.querySelector('section#perimetro')||d.querySelector('.section');
       if(target){
-        const section=d.createElement('section');section.className='section alt';section.id='simulatore';
-        section.innerHTML='<div class="wrap"><iframe id="fesrSim" src="fesr-simulatore.html" title="Simulatore interno FESR Metallufficio" style="display:block;width:100%;height:900px;border:0;background:transparent;overflow:hidden"></iframe></div>';
+        const section=d.createElement('section');section.id='simulatore';section.style.cssText='padding:0;background:#fff;border-top:1px solid #e5e8ed;border-bottom:1px solid #e5e8ed';
+        section.innerHTML='<iframe id="fesrSim" src="fesr-simulatore.html" title="Simulatore interno FESR Metallufficio" style="display:block;width:100%;height:1100px;border:0;background:#fff;overflow:hidden"></iframe>';
         target.parentNode.insertBefore(section,target);
         const nav=d.querySelector('.nav');if(nav&&!nav.querySelector('a[href="#simulatore"]')){const a=d.createElement('a');a.href='#simulatore';a.textContent='Simulatore';nav.insertBefore(a,nav.firstChild)}
         const sim=d.getElementById('fesrSim');
         sim.addEventListener('load',()=>{
-          const resize=()=>{try{const h=Math.max(700,sim.contentDocument.documentElement.scrollHeight,sim.contentDocument.body.scrollHeight);sim.style.height=h+'px'}catch(e){}};
-          resize();try{new ResizeObserver(resize).observe(sim.contentDocument.body)}catch(e){}setTimeout(resize,200);setTimeout(resize,700);
+          const resize=()=>{try{const h=Math.max(820,sim.contentDocument.documentElement.scrollHeight,sim.contentDocument.body.scrollHeight);sim.style.height=h+'px'}catch(e){}};
+          resize();try{new ResizeObserver(resize).observe(sim.contentDocument.body)}catch(e){}setTimeout(resize,200);setTimeout(resize,800);
         });
       }
     }
