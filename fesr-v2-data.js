@@ -6,15 +6,15 @@ const productCatalog={
   connect:['Pienissimo Pro','Zmenù','Posby','Tilby'],all:['','Zmenù','Posby','Tilby','Pienissimo Pro','Tomato AI','Odoo'],none:['']
 };
 const presets={
-  crm:{kind:'crm',product:'Pienissimo Pro',desc:'CRM, prenotazioni, profilazione clienti e marketing automation',cat:'B',months:12,pay:'monthly',status:'ok',eligible:true},
-  cassa:{kind:'cassa',product:'',desc:'Gestionale punto cassa, vendite, ordini e pagamenti integrati',cat:'B',months:12,pay:'monthly',status:'ok',eligible:true},
-  erp:{kind:'erp',product:'Odoo',desc:'ERP per ordini, magazzino, fatturazione e dati aziendali',cat:'B',months:12,pay:'monthly',status:'ok',eligible:true},
-  ecommerce:{kind:'none',product:'',desc:'Canale digitale di vendita, e-commerce, booking e pagamenti online',cat:'B',months:12,pay:'once',status:'ok',eligible:true},
-  cyber:{kind:'none',product:'',desc:'Firewall Enterprise UTM e tecnologie di cybersecurity',cat:'A',months:1,pay:'once',status:'ok',eligible:true},
-  backup:{kind:'none',product:'',desc:'NAS, storage, backup e disaster recovery',cat:'A',months:1,pay:'once',status:'ok',eligible:true},
-  network:{kind:'none',product:'',desc:'Switching e Wi-Fi professionale direttamente funzionale al progetto',cat:'A',months:1,pay:'once',status:'warn',eligible:true},
-  cashlogy:{kind:'none',product:'',desc:'Automazione del contante integrata al sistema di vendita',cat:'A',months:1,pay:'once',status:'validate',eligible:false},
-  analytics:{kind:'analytics',product:'Tomato AI',desc:'Analytics, dashboard e strumenti AI a supporto dei processi commerciali',cat:'B',months:12,pay:'monthly',status:'ok',eligible:true}
+  crm:{kind:'crm',product:'Pienissimo Pro',desc:'CRM, prenotazioni, profilazione clienti e marketing automation',cat:'B',months:12,pay:'monthly',status:'ok',eligible:true,outputs:['ambiente CRM configurato','integrazione CRM-cassa','dashboard clienti','workflow e notifiche']},
+  cassa:{kind:'cassa',product:'',desc:'Gestionale punto cassa, vendite, ordini e pagamenti integrati',cat:'B',months:12,pay:'monthly',status:'ok',eligible:true,outputs:['ambiente gestionale configurato','integrazioni operative','sistemi di pagamento attivati','verbale di test']},
+  erp:{kind:'erp',product:'Odoo',desc:'ERP per ordini, magazzino, fatturazione e dati aziendali',cat:'B',months:12,pay:'monthly',status:'ok',eligible:true,outputs:['ERP configurato','flussi ordini-magazzino','reportistica gestionale','manuale operativo']},
+  ecommerce:{kind:'none',product:'',desc:'Canale digitale di vendita, e-commerce, booking e pagamenti online',cat:'B',months:12,pay:'once',status:'ok',eligible:true,outputs:['URL o piattaforma funzionante','catalogo/canale digitale','pagamenti attivati','tracciamento conversioni']},
+  cyber:{kind:'none',product:'',desc:'Firewall Enterprise UTM e tecnologie di cybersecurity',cat:'A',months:1,pay:'once',status:'ok',eligible:true,outputs:['configurazioni di sicurezza','policy accessi','documentazione tecnica','verbale di collaudo']},
+  backup:{kind:'none',product:'',desc:'NAS, storage, backup e disaster recovery',cat:'A',months:1,pay:'once',status:'ok',eligible:true,outputs:['procedure di backup','test ripristino','configurazione storage','documentazione disaster recovery']},
+  network:{kind:'none',product:'',desc:'Switching e Wi-Fi professionale direttamente funzionale al progetto',cat:'A',months:1,pay:'once',status:'warn',eligible:true,outputs:['architettura di rete','configurazione rete/Wi-Fi','test connettività','documentazione tecnica']},
+  cashlogy:{kind:'none',product:'',desc:'Automazione del contante integrata al sistema di vendita',cat:'A',months:1,pay:'once',status:'validate',eligible:false,outputs:['integrazione con sistema di vendita','test ciclo incasso','collaudo operativo']},
+  analytics:{kind:'analytics',product:'Tomato AI',desc:'Analytics, dashboard e strumenti AI a supporto dei processi commerciali',cat:'B',months:12,pay:'monthly',status:'ok',eligible:true,outputs:['dashboard funzionante','reportistica','workflow analitici','verbale di test']}
 };
 const connectPackages={
   basic:{name:'CONNECT · BASIC',price:390,desc:'BASIC: setup operativo essenziale da remoto, fino a 3 ore.'},
