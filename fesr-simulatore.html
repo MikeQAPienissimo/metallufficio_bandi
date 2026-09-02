@@ -4,34 +4,18 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Simulatore FESR 1.2.2 · Metallufficio</title>
 <style>
-:root{--line:#e4e8ed;--body:"Aptos","Segoe UI",Arial,sans-serif}*{box-sizing:border-box}html,body{margin:0;background:#fff;color:#111318;font-family:var(--body)}.header{position:sticky;top:0;z-index:20;height:76px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 max(16px,calc((100vw - 1180px)/2));border-bottom:1px solid var(--line);background:rgba(255,255,255,.96);backdrop-filter:blur(14px)}.brand img{display:block;width:255px;height:56px;object-fit:contain;object-position:left center}.back{border:1px solid var(--line);border-radius:13px;padding:10px 13px;text-decoration:none;color:#111318;font-weight:900;font-size:.78rem}.shell{width:min(calc(100% - 24px),1180px);margin:auto;padding:24px 0 50px}.frame{display:block;width:100%;min-height:900px;border:0;background:#fff;overflow:hidden}.embedded .shell{width:100%;padding:16px 0 0}.embedded .frame{min-height:600px}@media(max-width:700px){.header{height:68px;padding:0 12px}.brand img{width:190px;height:46px}.back{padding:9px 10px;font-size:.72rem}.shell{width:min(calc(100% - 16px),1180px);padding-top:14px}.embedded .shell{padding-top:12px}}
+:root{--line:#e4e8ed;--body:"Aptos","Segoe UI",Arial,sans-serif}*{box-sizing:border-box}html,body{margin:0;width:100%;min-height:100%;background:#fff;font-family:var(--body)}.header{height:76px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 max(16px,calc((100vw - 1180px)/2));border-bottom:1px solid var(--line);background:#fff}.brand img{display:block;width:255px;height:56px;object-fit:contain;object-position:left center}.back{border:1px solid var(--line);border-radius:13px;padding:10px 13px;text-decoration:none;color:#111318;font-weight:900;font-size:.78rem}.frame{display:block;width:100%;min-height:1100px;border:0;background:#fff}.embedded .header{display:none}.embedded .frame{min-height:700px}@media(max-width:700px){.header{height:68px;padding:0 12px}.brand img{width:190px;height:46px}.back{padding:9px 10px;font-size:.72rem}}
 </style>
 </head>
 <body>
 <header class="header"><a class="brand" href="index.html" aria-label="Torna alla homepage"><img src="https://metallufficio-ristorazione.mikevast.chatgpt.site/logo-metallufficio.jpeg" alt="Metallufficio"></a><a class="back" href="simulatore.html">← Scegli bando</a></header>
-<div class="shell"><iframe id="sim" class="frame" src="fesr-simulatore-base.html" title="Simulatore FESR Metallufficio"></iframe></div>
+<iframe id="sim" class="frame" src="fesr-simulatore-base.html" title="Simulatore FESR Metallufficio"></iframe>
 <script>
 if(window.self!==window.top)document.body.classList.add('embedded');
 const sim=document.getElementById('sim');
-function resize(){
-  try{
-    const d=sim.contentDocument;
-    const h=Math.max(700,d.documentElement.scrollHeight,d.body.scrollHeight);
-    sim.style.height=h+'px';
-  }catch(e){}
-}
-function openAll(){
-  try{
-    const d=sim.contentDocument;if(!d)return;
-    const toggle=d.getElementById('toggle');if(toggle)toggle.style.display='none';
-    const content=d.getElementById('content');if(content){content.hidden=false;content.removeAttribute('hidden')}
-    d.body.style.background='#fff';d.documentElement.style.overflowX='hidden';
-    const style=d.createElement('style');style.textContent='.wrap{padding-top:0!important}.content{padding-top:0!important}@media(max-width:650px){.layout{grid-template-columns:1fr!important}.side{position:static!important}.panel{padding:14px!important}}';d.head.appendChild(style);
-    setTimeout(resize,40);setTimeout(resize,200);setTimeout(resize,700);
-    try{new ResizeObserver(resize).observe(d.body)}catch(e){}
-  }catch(e){}
-}
-sim.addEventListener('load',()=>{openAll();setTimeout(openAll,250)});
+function resize(){try{const d=sim.contentDocument;if(!d)return;const h=Math.max(760,d.documentElement.scrollHeight,d.body.scrollHeight);sim.style.height=h+'px'}catch(e){}}
+function tune(){try{const d=sim.contentDocument;if(!d)return;d.documentElement.style.overflowX='hidden';const goHome=e=>{e.preventDefault();e.stopPropagation();top.location.href='index.html'};d.querySelectorAll('.brand,.brand img,.footer img,img[alt*="Metallufficio" i]').forEach(n=>{n.style.cursor='pointer';n.addEventListener('click',goHome,true)});setTimeout(resize,40);setTimeout(resize,250);setTimeout(resize,800);try{new ResizeObserver(resize).observe(d.body)}catch(e){}}catch(e){}}
+sim.addEventListener('load',tune);
 </script>
 </body>
 </html>
