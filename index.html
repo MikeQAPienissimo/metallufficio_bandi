@@ -20,6 +20,30 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#fff}
 <iframe id="site" src="home.html" title="Confronto bandi Metallufficio"></iframe>
 <script>
 const frame=document.getElementById('site');
+const allowedPages=new Set(['home.html','cciaa.html','fesr.html']);
+
+function cleanPage(value){
+  const raw=(value||'').split('#')[0].split('?')[0];
+  return allowedPages.has(raw)?raw:'home.html';
+}
+
+function pageFromUrl(){
+  const p=new URLSearchParams(location.search).get('page');
+  return cleanPage(p?`${p}.html`:'home.html');
+}
+
+function loadPage(page,push=true){
+  const clean=cleanPage(page);
+  if(frame.getAttribute('src')!==clean) frame.setAttribute('src',clean);
+  if(push){
+    const key=clean.replace('.html','');
+    const url=key==='home'?'./':`?page=${encodeURIComponent(key)}`;
+    history.pushState({page:clean},'',url);
+  }
+}
+
+frame.setAttribute('src',pageFromUrl());
+
 frame.addEventListener('load',()=>{
   try{
     const doc=frame.contentDocument;
@@ -27,13 +51,22 @@ frame.addEventListener('load',()=>{
       const a=e.target.closest('a[href]');
       if(!a)return;
       const href=a.getAttribute('href')||'';
-      if(/^(cciaa|fesr|simulatore)\.html(?:[?#].*)?$/.test(href)){
+
+      if(/^simulatore\.html(?:[?#].*)?$/.test(href)){
         e.preventDefault();
         window.location.href=href;
+        return;
+      }
+
+      if(/^(home|cciaa|fesr)\.html(?:[?#].*)?$/.test(href)){
+        e.preventDefault();
+        loadPage(href,true);
       }
     },true);
   }catch(err){}
 });
+
+window.addEventListener('popstate',()=>loadPage(pageFromUrl(),false));
 </script>
 </body>
 </html>
