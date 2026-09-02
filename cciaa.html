@@ -14,6 +14,24 @@ site.addEventListener('load',()=>{
     const d=site.contentDocument;
     const home=e=>{e.preventDefault();e.stopPropagation();top.location.href='index.html'};
     d.querySelectorAll('.brand,.brand img,.footer img,img[alt*="Metallufficio" i]').forEach(n=>{n.style.cursor='pointer';n.addEventListener('click',home,true)});
+
+    if(!d.querySelector('.back-to-comparison')){
+      const style=d.createElement('style');
+      style.textContent=`
+        .back-to-comparison{display:inline-flex;align-items:center;gap:8px;text-decoration:none;border:1px solid #e5e7eb;background:#fff;color:#111318;border-radius:12px;padding:9px 12px;font:800 .78rem Aptos,"Segoe UI",Arial,sans-serif;box-shadow:0 5px 18px rgba(17,19,24,.05)}
+        .back-to-comparison:hover{border-color:#b9bec6}
+        @media print{.back-to-comparison{display:none!important}}
+      `;
+      d.head.appendChild(style);
+      const header=d.querySelector('header.header,header.site-header,.site-header,.header');
+      const backWrap=d.createElement('div');
+      backWrap.className='container';
+      backWrap.style.paddingTop='14px';
+      backWrap.innerHTML='<a href="index.html" class="back-to-comparison" aria-label="Torna al confronto bandi">← Torna al confronto CCIAA vs FESR</a>';
+      if(header) header.insertAdjacentElement('afterend',backWrap);
+      else d.body.insertAdjacentElement('afterbegin',backWrap);
+    }
+
     d.addEventListener('click',e=>{
       const a=e.target.closest('a[href]');if(!a)return;
       const href=a.getAttribute('href')||'';
