@@ -205,3 +205,50 @@ body.modal-open{overflow:hidden}
 }
 .output-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .output-list span{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:999px;background:#fafbfc;padding:5px 8px;font-size:.62rem;font-weight:800;color:#59616c}
+
+/* --- v4: composizione FESR su due righe fisse --- */
+.item{
+  display:grid;
+  grid-template-columns:repeat(12,minmax(0,1fr));
+  gap:10px;
+  align-items:end;
+}
+.item > :nth-child(1){grid-column:span 4;} /* Descrizione */
+.item > :nth-child(2){grid-column:span 2;} /* Prodotto interno */
+.item > :nth-child(3){grid-column:span 2;} /* Categoria */
+.item > :nth-child(4){grid-column:span 2;} /* Prezzo */
+.item > :nth-child(5){grid-column:span 2;} /* Mesi */
+.item > :nth-child(6){grid-column:span 3;} /* Pagamento */
+.item > :nth-child(7){grid-column:span 4;} /* Trattamento FESR */
+.item > :nth-child(8){grid-column:span 4;} /* Totale */
+.item > :nth-child(9){grid-column:span 1;} /* Elimina */
+.item-total{height:52px;padding:8px 11px;border-radius:12px;align-items:flex-end;justify-content:center;}
+.remove{width:100%;height:52px;border-radius:12px;}
+.item .field label{font-size:.64rem;display:block;margin-bottom:4px;}
+.item .field input,.item .field select{min-width:0;}
+
+@media(max-width:1050px){
+  .item{grid-template-columns:repeat(6,minmax(0,1fr));}
+  .item > :nth-child(1){grid-column:span 6;}
+  .item > :nth-child(2){grid-column:span 2;}
+  .item > :nth-child(3){grid-column:span 2;}
+  .item > :nth-child(4){grid-column:span 1;}
+  .item > :nth-child(5){grid-column:span 1;}
+  .item > :nth-child(6){grid-column:span 2;}
+  .item > :nth-child(7){grid-column:span 3;}
+  .item > :nth-child(8){grid-column:span 1;}
+  .item > :nth-child(9){grid-column:span 6;}
+  .remove{height:42px;}
+}
+@media(max-width:720px){
+  .item{grid-template-columns:1fr 1fr;}
+  .item > :nth-child(1),
+  .item > :nth-child(2),
+  .item > :nth-child(3),
+  .item > :nth-child(6),
+  .item > :nth-child(7),
+  .item > :nth-child(8),
+  .item > :nth-child(9){grid-column:1/-1;}
+  .item > :nth-child(4),.item > :nth-child(5){grid-column:span 1;}
+  .item-total{align-items:flex-start;}
+}
