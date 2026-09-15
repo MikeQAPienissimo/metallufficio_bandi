@@ -12,7 +12,7 @@
 <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 </head>
 <body>
-<header class="header"><div class="wrap"><a class="brand" href="index.html" aria-label="Torna alla homepage"><img src="metallufficio-logo.svg" alt="Metallufficio"></a><div class="head-actions"><a class="btn hide-sm" href="simulatore.html">SIMULA</a><a class="btn" href="index.html">← Home</a></div></div></header>
+<header class="header"><div class="wrap"><a class="brand" href="index.html" aria-label="Torna alla homepage"><img src="metallufficio-logo.jpeg" alt="Metallufficio"></a><div class="head-actions"><a class="btn hide-sm" href="simulatore.html">SIMULA</a><a class="btn" href="index.html">← Home</a></div></div></header>
 <section class="hero"><div class="wrap"><span class="kicker">Uso interno · controllo pre-istruttoria</span><h1>Valutatore <span class="gradient-text">Progetti.</span></h1><p>Carichiamo il progetto ricevuto dal cliente e lo leggiamo come farebbe un istruttore: requisiti, punteggio, tagli possibili, incoerenze, documenti mancanti e punti contestabili. Poi rigeneriamo il file partendo dal template originale del cliente, senza ridisegnarlo.</p><div class="chips"><span class="chip">PDF / DOCX / XLSX</span><span class="chip">FESR predefinito</span><span class="chip">Punteggio coerente al bando</span><span class="chip">Tagli e contestazioni</span><span class="chip">Template originale preservato</span></div></div></section>
 <main class="main"><div class="wrap">
 <div class="setup">
@@ -39,9 +39,17 @@
     <section class="result-card"><h3>Ammissibilità / requisiti</h3><div class="list" id="eligibilityList"></div></section>
     <section class="result-card"><h3>Punteggio e rischio</h3><div id="scoreBox"></div></section>
     <section class="result-card full"><h3>Punti contestabili, tagli e incoerenze</h3><div class="list" id="findingsList"></div><div class="empty" id="noFindings" hidden>Nessuna criticità significativa rilevata nel testo analizzato.</div></section>
-    <section class="result-card full"><h3>Interventi prioritari prima della presentazione</h3><div class="list" id="actionsList"></div><div class="actions-row"><button class="btn dark" id="rewriteBtn" type="button">RIGENERA PROGETTO MIGLIORATO</button><button class="btn" id="printReportBtn" type="button">Stampa report analisi</button></div></section>
+    <section class="result-card full"><h3>Interventi prioritari prima della presentazione</h3><div class="list" id="actionsList"></div><div class="actions-row"><button class="btn dark" id="rewriteBtn" type="button">RIGENERA PROGETTO MIGLIORATO</button><button class="btn" id="printReportBtn" type="button">Stampa report analisi</button></div><div class="rewrite-progress" id="rewriteProgress"><div class="rewrite-progress-head"><b>Generazione versione revisionata</b><span id="rewriteProgressText">Preparazione…</span></div><div class="rewrite-progress-track"><span id="rewriteProgressBar"></span></div></div></section>
   </div>
-  <section class="rewrite-panel" id="rewritePanel"><h3>Versione migliorata sul template originale</h3><p class="empty" id="rewriteNote"></p><div class="rewrite-sections" id="rewriteSections"></div><div class="actions-row"><button class="btn grad" id="downloadDocxBtn" type="button" hidden>SCARICA DOCX REVISIONATO</button><button class="btn grad" id="printRewriteBtn" type="button" hidden>SCARICA PDF REVISIONATO</button><button class="btn dark" id="reanalyzeBtn" type="button" hidden>ANALIZZA VERSIONE REVISIONATA</button></div></section>
+  <section class="rewrite-panel" id="rewritePanel">
+    <div class="rewrite-panel-head"><div><h3>Versione migliorata sul template originale</h3><p class="empty" id="rewriteNote"></p></div><span class="rewrite-count" id="rewriteChangeCount"></span></div>
+    <div class="rewrite-preview-grid">
+      <section class="rewrite-preview-column"><div class="rewrite-preview-title"><b>1 · Errori e criticità rilevate</b><span>cosa stiamo correggendo</span></div><div class="rewrite-preview-list" id="rewriteIssuesPreview"></div></section>
+      <section class="rewrite-preview-column"><div class="rewrite-preview-title"><b>2 · Modifiche generate</b><span>prima / dopo sul file cliente</span></div><div class="rewrite-preview-list" id="rewriteChangesPreview"></div></section>
+    </div>
+    <details class="rewrite-summary"><summary>Mostra anche la sintesi testuale generata</summary><div class="rewrite-sections" id="rewriteSections"></div></details>
+    <div class="actions-row"><button class="btn grad" id="downloadDocxBtn" type="button" hidden>SCARICA DOCX REVISIONATO</button><button class="btn grad" id="printRewriteBtn" type="button" hidden>SCARICA PDF REVISIONATO</button><button class="btn dark" id="reanalyzeBtn" type="button" hidden>ANALIZZA VERSIONE REVISIONATA</button></div>
+  </section>
 </section>
 </div></main>
 <footer class="footer"><div class="wrap">Metallufficio · Valutatore interno bandi 2026 · l'esito non sostituisce l'istruttoria dell'ente</div></footer>
@@ -49,4 +57,5 @@
 <script src="valuta-progetto.js"></script>
 <script src="valuta-progetto-template.js"></script>
 <script src="valuta-progetto-async.js"></script>
+<script src="valuta-progetto-controller.js?v=20260915-1"></script>
 </body></html>
