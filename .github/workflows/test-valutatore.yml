@@ -11,26 +11,38 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Attendi deploy Netlify
-        run: sleep 35
+        run: sleep 45
 
       - name: Verifica health check
         run: |
           curl -fsS https://digitalizzazione2026.netlify.app/api/valutatore-health | tee /tmp/health.json
           node -e "const x=require('/tmp/health.json'); if(!x.ok || !x.api_key_configured) process.exit(1); console.log('Health OK - model:', x.model)"
 
-      - name: Analisi CCIAA di prova
+      - name: Analisi CCIAA di prova in background
         run: |
-          code=$(curl -sS -o /tmp/result.json -w '%{http_code}' \
-            -X POST 'https://digitalizzazione2026.netlify.app/api/valuta-progetto' \
+          JOB="smoke-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          code=$(curl -sS -o /tmp/start.txt -w '%{http_code}' \
+            -X POST 'https://digitalizzazione2026.netlify.app/api/valuta-progetto-async' \
             -H 'content-type: application/json' \
-            --data '{"action":"analyze","bando":"cciaa","mode":"score","fileName":"smoke-test.txt","fileType":"txt","documentText":"Impresa PMI con sede operativa a Chieti. Il progetto prevede introduzione di un CRM per gestione clienti e processi commerciali. Investimento indicato euro 4.000 IVA esclusa. Non sono riportati altri requisiti, preventivi, schede tecniche o dettagli sui fornitori.","deterministicContext":{}}')
-          echo "HTTP $code"
-          if [ "$code" != "200" ]; then cat /tmp/result.json; exit 1; fi
+            --data "{\"jobId\":\"$JOB\",\"action\":\"analyze\",\"bando\":\"cciaa\",\"mode\":\"score\",\"fileName\":\"smoke-test.txt\",\"fileType\":\"txt\",\"documentText\":\"Impresa PMI con sede operativa a Chieti. Il progetto prevede introduzione di un CRM per gestione clienti e processi commerciali. Investimento indicato euro 4.000 IVA esclusa. Non sono riportati altri requisiti, preventivi, schede tecniche o dettagli sui fornitori.\",\"deterministicContext\":{}}")
+          echo "START HTTP $code"
+          if [ "$code" != "202" ] && [ "$code" != "200" ]; then cat /tmp/start.txt; exit 1; fi
+          for i in $(seq 1 90); do
+            sleep 5
+            status=$(curl -sS -o /tmp/job.json -w '%{http_code}' "https://digitalizzazione2026.netlify.app/api/valutatore-job?id=$JOB")
+            if [ "$status" = "404" ]; then continue; fi
+            if [ "$status" != "200" ]; then cat /tmp/job.json; exit 1; fi
+            state=$(node -e "const x=require('/tmp/job.json'); process.stdout.write(x.status||'')")
+            echo "Job: $state"
+            if [ "$state" = "error" ]; then cat /tmp/job.json; exit 1; fi
+            if [ "$state" = "done" ]; then break; fi
+          done
           node - <<'NODE'
           const fs=require('fs');
-          const x=JSON.parse(fs.readFileSync('/tmp/result.json','utf8'));
-          const a=x.analysis || x;
-          if(a.band !== 'cciaa') throw new Error('Risposta non valida: band');
+          const x=JSON.parse(fs.readFileSync('/tmp/job.json','utf8'));
+          if(x.status!=='done') throw new Error('Job non completato nel tempo previsto');
+          const a=x.result?.analysis;
+          if(!a || a.band!=='cciaa') throw new Error('Risposta non valida: band');
           if(!a.verdict || !Array.isArray(a.eligibility) || !Array.isArray(a.findings)) throw new Error('Schema analisi incompleto');
           console.log('Analisi E2E OK:', a.verdict.status, '- findings:', a.findings.length);
           NODE
