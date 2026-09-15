@@ -1,9 +1,9 @@
 // Logo ufficiale Metallufficio: sorgente locale al sito con fallback automatici.
 // Questa logica viene caricata in ogni pagina di Metallufficio Quote e forza sempre lo stesso logo.
 const MQ_LOGO_CANDIDATES=[
-  '../metallufficio-logo.svg?v=20260908',
-  '/metallufficio-logo.svg?v=20260908',
-  'https://digitalizzazione2026.netlify.app/metallufficio-logo.svg?v=20260908'
+  '../metallufficio-logo.jpeg?v=20260908',
+  '/metallufficio-logo.jpeg?v=20260908',
+  'https://digitalizzazione2026.netlify.app/metallufficio-logo.jpeg?v=20260908'
 ];
 window.MQ_LOGO=MQ_LOGO_CANDIDATES[0];
 const MQ_LOGO=window.MQ_LOGO;
