@@ -1,0 +1,36 @@
+name: Test valutatore progetti
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/test-valutatore.yml'
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Attendi deploy Netlify
+        run: sleep 35
+
+      - name: Verifica health check
+        run: |
+          curl -fsS https://digitalizzazione2026.netlify.app/api/valutatore-health | tee /tmp/health.json
+          node -e "const x=require('/tmp/health.json'); if(!x.ok || !x.api_key_configured) process.exit(1); console.log('Health OK - model:', x.model)"
+
+      - name: Analisi CCIAA di prova
+        run: |
+          code=$(curl -sS -o /tmp/result.json -w '%{http_code}' \
+            -X POST 'https://digitalizzazione2026.netlify.app/api/valuta-progetto' \
+            -H 'content-type: application/json' \
+            --data '{"action":"analyze","bando":"cciaa","mode":"score","fileName":"smoke-test.txt","fileType":"txt","documentText":"Impresa PMI con sede operativa a Chieti. Il progetto prevede introduzione di un CRM per gestione clienti e processi commerciali. Investimento indicato euro 4.000 IVA esclusa. Non sono riportati altri requisiti, preventivi, schede tecniche o dettagli sui fornitori.","deterministicContext":{}}')
+          echo "HTTP $code"
+          if [ "$code" != "200" ]; then cat /tmp/result.json; exit 1; fi
+          node - <<'NODE'
+          const fs=require('fs');
+          const x=JSON.parse(fs.readFileSync('/tmp/result.json','utf8'));
+          const a=x.analysis || x;
+          if(a.band !== 'cciaa') throw new Error('Risposta non valida: band');
+          if(!a.verdict || !Array.isArray(a.eligibility) || !Array.isArray(a.findings)) throw new Error('Schema analisi incompleto');
+          console.log('Analisi E2E OK:', a.verdict.status, '- findings:', a.findings.length);
+          NODE
