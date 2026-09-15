@@ -4,6 +4,13 @@
   const q=id=>document.getElementById(id);
   const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   const MAX_TEXT=300000;
+  function friendlyAiError(message){
+    const raw=String(message||'Errore durante la rigenerazione AI');
+    const x=raw.toLowerCase();
+    if(x.includes('usage_exceeded')||x.includes('insufficient_quota')||x.includes('quota')||x.includes('billing')||x.includes('credit'))return 'Credito o limite API OpenAI raggiunto. Aggiungi credito API oppure attendi il ripristino del limite e riprova.';
+    if(x.includes('rate_limit'))return 'Limite temporaneo API OpenAI raggiunto. Attendi qualche minuto e riprova.';
+    return raw;
+  }
   let revised=null;
 
   const escapeHtml=s=>String(s??'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
@@ -77,7 +84,7 @@
       const data=await res.json().catch(()=>({}));
       if(!res.ok)throw new Error(data.error||`Errore stato job ${res.status}`);
       if(data.status==='done')return data.result||{};
-      if(data.status==='error')throw new Error(data.error||'Errore durante la rigenerazione AI');
+      if(data.status==='error')throw new Error(friendlyAiError(data.error||'Errore durante la rigenerazione AI'));
     }
     throw new Error('Rigenerazione ancora in corso oltre il tempo massimo della pagina');
   }
@@ -90,7 +97,7 @@
     const res=await fetch(endpoint,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload)});
     if(!(res.ok||res.status===202)){
       const data=await res.json().catch(()=>({}));
-      throw new Error(data.error||`Errore avvio rigenerazione ${res.status}`);
+      throw new Error(friendlyAiError(data.error||`Errore avvio rigenerazione ${res.status}`));
     }
     setRewriteProgress(true,14,'Progetto inviato al motore di revisione…');
     return pollJob(jobId,'Generazione delle correzioni');
@@ -294,7 +301,7 @@
     if(!state.analysis||!state.file)return;
     const btn=q('rewriteBtn'),analyze=q('analyzeBtn');btn.disabled=true;if(analyze)analyze.disabled=true;revised=null;
     try{
-      const payload={action:'rewrite',bando:selectedBando(),fileName:state.file.name,fileType:state.type,documentText:state.text,paragraphs:state.type==='docx'?state.paragraphs.slice(0,1200):[],analysis:state.analysis};
+      const payload={action:'rewrite',bando:selectedBando(),fileName:state.file.name,fileType:state.type,documentText:state.text,paragraphs:state.type==='docx'?state.paragraphs.slice(0,1200):[],analysis:state.analysis,requestedContributionRate:Number(q('projectContributionRate')?.value)||null,verifiedFacts:q('projectVerifiedFacts')?.value.trim()||''};
       const result=await submitRewrite(payload);
       if(!result.rewrite)throw new Error('Il job è terminato senza una versione revisionata valida');
       state.rewrite=result.rewrite;

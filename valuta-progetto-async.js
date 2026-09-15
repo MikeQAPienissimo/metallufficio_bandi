@@ -1,6 +1,13 @@
 (()=>{
   const delay=ms=>new Promise(r=>setTimeout(r,ms));
   const newJobId=()=>crypto.randomUUID().replace(/-/g,'');
+  function friendlyAiError(message){
+    const raw=String(message||'Errore durante il job AI.');
+    const x=raw.toLowerCase();
+    if(x.includes('usage_exceeded')||x.includes('insufficient_quota')||x.includes('quota')||x.includes('billing')||x.includes('credit'))return 'Credito o limite API OpenAI raggiunto. Aggiungi credito API oppure attendi il ripristino del limite e riprova.';
+    if(x.includes('rate_limit'))return 'Limite temporaneo API OpenAI raggiunto. Attendi qualche minuto e riprova.';
+    return raw;
+  }
 
   async function pollJob(jobId,label){
     const started=Date.now();let attempts=0;
@@ -13,7 +20,7 @@
       const data=await res.json().catch(()=>({}));
       if(!res.ok)throw new Error(data.error||`Errore stato job ${res.status}`);
       if(data.status==='done')return data.result||{};
-      if(data.status==='error')throw new Error(data.error||'Errore durante il job AI.');
+      if(data.status==='error')throw new Error(friendlyAiError(data.error||'Errore durante il job AI.'));
     }
     throw new Error('Analisi ancora in corso oltre il tempo massimo di attesa della pagina. Riprova tra poco.');
   }
@@ -34,7 +41,7 @@
     const backend=document.getElementById('backendCheck');backend.className='check';backend.textContent='AI server-side: job in avvio';
     try{
       const fallback=state.file.size<=2.2*1024*1024?await directFileFallback():null;
-      const payload={action:'analyze',bando:selectedBando(),mode:document.getElementById('mode').value,notes:document.getElementById('notes').value.trim(),fileName:state.file.name,fileType:state.type,documentText:state.text,paragraphs:state.type==='docx'?state.paragraphs.slice(0,1200):[],fileBase64:fallback,fileMime:state.file.type||'application/pdf',deterministicContext:detectDeterministicContext()};
+      const payload={action:'analyze',bando:selectedBando(),mode:document.getElementById('mode').value,notes:document.getElementById('notes').value.trim(),fileName:state.file.name,fileType:state.type,documentText:state.text,paragraphs:state.type==='docx'?state.paragraphs.slice(0,1200):[],fileBase64:fallback,fileMime:state.file.type||'application/pdf',deterministicContext:detectDeterministicContext(),projectContext:{requested_contribution_rate:Number(document.getElementById('projectContributionRate')?.value)||null,verified_facts:document.getElementById('projectVerifiedFacts')?.value.trim()||''}};
       backend.textContent='AI server-side: analisi approfondita in background';
       const result=await submitBackground(payload,'Analisi istruttoria in corso');
       if(!result.analysis)throw new Error('Il job è terminato senza un’analisi valida.');
@@ -48,7 +55,7 @@
     if(!state.analysis||!state.file)return;
     setBusy(true,'Avvio rigenerazione del progetto…');
     try{
-      const payload={action:'rewrite',bando:selectedBando(),fileName:state.file.name,fileType:state.type,documentText:state.text,paragraphs:state.type==='docx'?state.paragraphs.slice(0,1200):[],analysis:state.analysis};
+      const payload={action:'rewrite',bando:selectedBando(),fileName:state.file.name,fileType:state.type,documentText:state.text,paragraphs:state.type==='docx'?state.paragraphs.slice(0,1200):[],analysis:state.analysis,requestedContributionRate:Number(document.getElementById('projectContributionRate')?.value)||null,verifiedFacts:document.getElementById('projectVerifiedFacts')?.value.trim()||''};
       const result=await submitBackground(payload,'Rigenerazione progetto in corso');
       if(!result.rewrite)throw new Error('Il job è terminato senza una versione revisionata valida.');
       state.rewrite=result.rewrite;renderRewrite(state.rewrite);document.getElementById('rewritePanel').classList.add('show');document.getElementById('rewritePanel').scrollIntoView({behavior:'smooth',block:'start'});
