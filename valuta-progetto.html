@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Valutatore Progetti · Metallufficio</title>
+<meta name="description" content="Valutatore interno Metallufficio per progetti CCIAA e FESR 2026.">
+<link rel="stylesheet" href="valuta-progetto.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" referrerpolicy="no-referrer"></script>
+</head>
+<body>
+<header class="header"><div class="wrap"><a class="brand" href="index.html" aria-label="Torna alla homepage"><img src="metallufficio-logo.svg" alt="Metallufficio"></a><div class="head-actions"><a class="btn hide-sm" href="simulatore.html">SIMULA</a><a class="btn" href="index.html">← Home</a></div></div></header>
+<section class="hero"><div class="wrap"><span class="kicker">Uso interno · controllo pre-istruttoria</span><h1>Valutatore <span class="gradient-text">Progetti.</span></h1><p>Carichiamo il progetto ricevuto dal cliente e lo leggiamo come farebbe un istruttore: requisiti, punteggio, tagli possibili, incoerenze, documenti mancanti e punti contestabili. Poi possiamo rigenerare una versione più solida senza cambiare inutilmente la struttura del cliente.</p><div class="chips"><span class="chip">PDF / DOCX</span><span class="chip">CCIAA o FESR</span><span class="chip">Punteggio coerente al bando</span><span class="chip">Tagli e contestazioni</span><span class="chip">Rigenerazione progetto</span></div></div></section>
+<main class="main"><div class="wrap">
+<div class="setup">
+  <div class="stack">
+    <section class="card"><div class="card-head"><div><h2>Quale bando stiamo valutando?</h2><p>Il motore usa regole e griglie diverse per i due strumenti.</p></div><span class="step">1</span></div><div class="card-body"><div class="band-grid">
+      <div class="band-option"><input type="radio" name="bando" id="bandoCciaa" value="cciaa" checked><label for="bandoCciaa"><b>Voucher CCIAA Chieti Pescara</b><small>Controllo di ammissibilità e indice di rischio istruttorio interno. Il bando non prevede un punteggio di merito analogo al FESR.</small></label></div>
+      <div class="band-option"><input type="radio" name="bando" id="bandoFesr" value="fesr"><label for="bandoFesr"><b>PR Abruzzo FESR 1.2.2</b><small>Premialità preliminari + merito 75 punti, soglia 40/75, intensità contributo e punti contestabili.</small></label></div>
+    </div></div></section>
+    <section class="card"><div class="card-head"><div><h2>Documento del cliente</h2><p>Il file resta nel browser; al motore viene inviato il testo/struttura necessari all'analisi.</p></div><span class="step">2</span></div><div class="card-body">
+      <label class="upload" id="dropZone"><input id="fileInput" type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"><strong>Trascina qui PDF o DOCX</strong><span>oppure clicca per scegliere il file</span></label>
+      <div class="file-info" id="fileInfo"><div><b id="fileName"></b><div id="fileMeta"></div></div><button class="btn" id="removeFile" type="button">Rimuovi</button></div>
+      <div class="notice" id="parseNotice">Per i DOCX possiamo anche applicare le correzioni direttamente al file originale mantenendo struttura, tabelle e formattazione per quanto tecnicamente possibile. Per i PDF la versione rigenerata viene ricostruita in formato stampabile.</div>
+    </div></section>
+    <section class="card"><div class="card-head"><div><h2>Tipo di controllo</h2><p>L'istruttoria completa comprende automaticamente anche punteggio, tagli e correzioni.</p></div><span class="step">3</span></div><div class="card-body"><div class="field"><label for="mode">Analisi richiesta</label><select id="mode"><option value="full">Istruttoria completa</option><option value="score">Solo punteggio / ammissibilità</option><option value="cuts">Cerca tagli, contestazioni e incoerenze</option></select></div><div class="field" style="margin-top:11px"><label for="notes">Note nostre per l'istruttore AI (facoltative)</label><textarea id="notes" placeholder="Es. cliente già attivo con Pienissimo; verificare soprattutto hardware, incremento fatturato, Area Interna..."></textarea></div><div class="mode-grid" style="margin-top:12px"><div class="mode"><b>Modalità severa</b><small>Non presume requisiti non documentati e considera “da verificare” tutto ciò che non è provato nel file.</small></div><div class="mode"><b>Nessun punteggio inventato</b><small>CCIAA: indice interno, non punteggio ufficiale. FESR: griglia e soglie del bando.</small></div></div></div></section>
+  </div>
+  <aside class="side"><section class="side-card"><h3>Prima di analizzare</h3><p>Il controllo è pensato per noi di Metallufficio, non come esito ufficiale da consegnare al cliente.</p><div class="checklist"><div class="check ok">✓ Regole CCIAA e FESR separate</div><div class="check ok">✓ Ricerca costi tagliabili</div><div class="check ok">✓ Evidenze mancanti / incoerenze</div><div class="check ok">✓ Riscrittura migliorativa</div><div class="check" id="backendCheck">AI server-side: verifica al primo utilizzo</div></div><button class="run" id="analyzeBtn" type="button" disabled>ANALIZZA COME ISTRUTTORE</button><div class="progress" id="progress"><div class="bar"><span></span></div><p id="progressText">Lettura e controllo del progetto…</p></div><div class="notice warn" id="limitNotice">L'analisi testuale non ha il limite di 4,5 MB delle funzioni Netlify perché PDF e DOCX vengono estratti nel browser. I PDF scannerizzati senza testo richiedono invece un PDF digitale o OCR esterno.</div></section></aside>
+</div>
+<section class="results" id="results">
+  <div class="result-head"><div class="row"><div><h2 id="resultTitle">Risultato analisi</h2><p id="resultSummary"></p></div><span class="verdict" id="verdict"></span></div><div class="metrics" id="metrics"></div></div>
+  <div class="result-grid">
+    <section class="result-card"><h3>Ammissibilità / requisiti</h3><div class="list" id="eligibilityList"></div></section>
+    <section class="result-card"><h3>Punteggio e rischio</h3><div id="scoreBox"></div></section>
+    <section class="result-card full"><h3>Punti contestabili, tagli e incoerenze</h3><div class="list" id="findingsList"></div><div class="empty" id="noFindings" hidden>Nessuna criticità significativa rilevata nel testo analizzato.</div></section>
+    <section class="result-card full"><h3>Interventi prioritari prima della presentazione</h3><div class="list" id="actionsList"></div><div class="actions-row"><button class="btn dark" id="rewriteBtn" type="button">RIGENERA PROGETTO MIGLIORATO</button><button class="btn" id="printReportBtn" type="button">Stampa report analisi</button></div></section>
+  </div>
+  <section class="rewrite-panel" id="rewritePanel"><h3>Versione migliorata</h3><p class="empty" id="rewriteNote"></p><div class="rewrite-sections" id="rewriteSections"></div><div class="actions-row"><button class="btn grad" id="downloadDocxBtn" type="button" hidden>SCARICA DOCX REVISIONATO</button><button class="btn grad" id="printRewriteBtn" type="button" hidden>APRI VERSIONE STAMPABILE</button></div></section>
+</section>
+</div></main>
+<footer class="footer"><div class="wrap">Metallufficio · Valutatore interno bandi 2026 · l'esito non sostituisce l'istruttoria dell'ente</div></footer>
+<script src="fesr-v2-data.js"></script>
+<script src="valuta-progetto.js"></script>
+</body></html>
