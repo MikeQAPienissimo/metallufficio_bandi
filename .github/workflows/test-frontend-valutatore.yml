@@ -1,0 +1,34 @@
+name: Test frontend valutatore
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/test-frontend-valutatore.yml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Verifica sintassi JavaScript
+        run: |
+          node --check valuta-progetto-controller.js
+          node --check valuta-progetto.js
+          node --check valuta-progetto-template.js
+          node --check valuta-progetto-async.js
+      - name: Verifica asset logo ufficiale
+        run: |
+          test -s metallufficio-logo.jpeg
+          if grep -R --exclude-dir=.git --exclude='*.yml' -n 'metallufficio-logo.svg' .; then
+            echo 'Trovati riferimenti allo SVG vecchio'
+            exit 1
+          fi
+      - name: Verifica elementi UX rigenerazione
+        run: |
+          grep -q 'id="rewriteProgress"' valuta-progetto.html
+          grep -q 'id="rewriteIssuesPreview"' valuta-progetto.html
+          grep -q 'id="rewriteChangesPreview"' valuta-progetto.html
+          grep -q 'valuta-progetto-controller.js' valuta-progetto.html
