@@ -1,0 +1,127 @@
+name: Test live regressione valutatore
+on:
+  push:
+    paths:
+      - '.github/workflows/test-valutatore-regressione-scope.yml'
+permissions:
+  contents: read
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Test pagina, health, analisi, rewrite e rianalisi
+        env:
+          BASE_URL: https://digitalizzazione2026.netlify.app
+        run: |
+          python - <<'PY'
+          import json, os, time, uuid, urllib.request, urllib.error
+
+          BASE=os.environ['BASE_URL'].rstrip('/')
+
+          def req(path, method='GET', payload=None, timeout=30):
+              data=None
+              headers={'User-Agent':'Metallufficio-regression-test/1.0'}
+              if payload is not None:
+                  data=json.dumps(payload).encode('utf-8')
+                  headers['Content-Type']='application/json'
+              r=urllib.request.Request(BASE+path,data=data,headers=headers,method=method)
+              try:
+                  with urllib.request.urlopen(r,timeout=timeout) as res:
+                      raw=res.read().decode('utf-8','replace')
+                      return res.status, raw
+              except urllib.error.HTTPError as e:
+                  raw=e.read().decode('utf-8','replace')
+                  return e.code, raw
+
+          # 1. pagina live aggiornata
+          deadline=time.time()+180
+          while True:
+              status,html=req('/valuta-progetto.html')
+              if status==200 and 'projectContributionRate' in html and 'v=20260915-5' in html:
+                  break
+              if time.time()>deadline:
+                  raise SystemExit(f'Pagina live non aggiornata: HTTP {status}')
+              time.sleep(6)
+          print('OK pagina live aggiornata')
+
+          # 2. health server-side
+          status,raw=req('/api/valutatore-health')
+          if status!=200:
+              raise SystemExit(f'Health KO HTTP {status}: {raw[:500]}')
+          health=json.loads(raw)
+          if not health.get('ok') or not health.get('api_key_configured'):
+              raise SystemExit(f'Health non pronta: {health}')
+          print('OK health AI:',health.get('model'))
+
+          def submit_and_poll(endpoint,payload,label):
+              job=uuid.uuid4().hex
+              payload=dict(payload); payload['jobId']=job
+              status,raw=req(endpoint,'POST',payload,60)
+              if status not in (200,202):
+                  raise SystemExit(f'{label}: avvio KO HTTP {status}: {raw[:800]}')
+              deadline=time.time()+480
+              while time.time()<deadline:
+                  time.sleep(3)
+                  st,body=req('/api/valutatore-job?id='+job)
+                  if st==404: continue
+                  if st!=200: raise SystemExit(f'{label}: polling HTTP {st}: {body[:500]}')
+                  x=json.loads(body)
+                  if x.get('status')=='done': return x.get('result') or {}
+                  if x.get('status')=='error': raise SystemExit(f"{label}: {x.get('error')}")
+              raise SystemExit(label+': timeout')
+
+          doc='''OFFERTA ECONOMICA / PREVENTIVO FORNITORE\nCliente: Ristocity Srl\nFornitore: Metallufficio Srl\nOggetto: progetto integrato di digitalizzazione dei processi di vendita e relazione cliente.\nAS-IS: ordini, prenotazioni e dati cliente sono gestiti su strumenti separati, con duplicazioni e riallineamenti manuali.\nTO-BE: gestionale di cassa, CRM e canali digitali saranno interoperabili tramite API/connettori documentati, con anagrafica cliente unica e sincronizzazione degli eventi di vendita.\nAttività: analisi iniziale, configurazione, integrazione, migrazione dati, test, collaudo, formazione operativa e verifica finale.\nKPI di progetto: riduzione delle operazioni manuali di riallineamento e aumento della quota di clienti riconosciuti sul CRM; baseline e target numerici saranno formalizzati con il beneficiario prima della domanda.\nDurata progetto: 12 mesi.\nLicenze software: 12 mesi.\nInvestimento imponibile complessivo: euro 24.000.\nIl presente documento è un preventivo tecnico-economico del fornitore e non costituisce il dossier amministrativo del beneficiario.'''
+          paragraphs=[{'index':i,'text':p} for i,p in enumerate(doc.split('\n')) if p.strip()]
+          ctx={'requested_contribution_rate':50,'verified_facts':'Progetto di 12 mesi; licenze 12 mesi; integrazione via API/connettori confermata; il file è un preventivo del fornitore, non il dossier amministrativo.'}
+
+          analyze_payload={
+              'action':'analyze','bando':'fesr','mode':'full','notes':'Regression test: trattare il file come PREVENTIVO/OFFERTA FORNITORE.',
+              'fileName':'preventivo-test.docx','fileType':'docx','documentText':doc,'paragraphs':paragraphs,
+              'deterministicContext':{},'projectContext':ctx
+          }
+          r1=submit_and_poll('/api/valuta-progetto-async',analyze_payload,'analisi 1')
+          a1=r1.get('analysis') or {}
+          score=a1.get('score') or {}
+          if score.get('merit_c')!=14 or score.get('contribution_rate')!=50:
+              raise SystemExit(f"C deterministico errato: {score.get('merit_c')} rate={score.get('contribution_rate')}")
+
+          forbidden=('visura','de minimis','ateco','titolo di disponibil','titoli di disponibil','dichiarazione pmi','percentuale di contributo')
+          bad=[]
+          for f in a1.get('findings') or []:
+              if f.get('severity') not in ('critical','high'): continue
+              txt=(' '.join(str(f.get(k) or '') for k in ('title','detail','suggested_fix'))).lower()
+              if any(k in txt for k in forbidden): bad.append(f)
+          if bad:
+              raise SystemExit('Scope documentale errato: criticità amministrative HIGH/CRITICAL nel preventivo: '+json.dumps(bad,ensure_ascii=False)[:1800])
+          print('OK analisi 1: scope documentale e C deterministico')
+
+          rewrite_payload={
+              'action':'rewrite','bando':'fesr','fileName':'preventivo-test.docx','fileType':'docx',
+              'documentText':doc,'paragraphs':paragraphs,'analysis':a1,
+              'requestedContributionRate':50,'verifiedFacts':ctx['verified_facts']
+          }
+          rr=submit_and_poll('/api/valuta-progetto-async',rewrite_payload,'rewrite')
+          rw=rr.get('rewrite') or {}
+          if not (rw.get('sections') or rw.get('docx_edits')):
+              raise SystemExit('Rewrite vuoto')
+          print('OK rewrite generato')
+
+          revised='\n'.join(s.get('text','') for s in (rw.get('sections') or []) if s.get('text'))
+          if len(revised)<80:
+              revised=doc+'\n'+'\n'.join(e.get('replacement_text','') for e in (rw.get('docx_edits') or []) if e.get('replacement_text'))
+          r2=submit_and_poll('/api/valuta-progetto-async',{**analyze_payload,'documentText':revised,'paragraphs':[]},'rianalisi')
+          a2=r2.get('analysis') or {}
+          score2=a2.get('score') or {}
+          if score2.get('merit_c')!=14 or score2.get('contribution_rate')!=50:
+              raise SystemExit(f"Rianalisi: C deterministico errato {score2.get('merit_c')} rate={score2.get('contribution_rate')}")
+          bad2=[]
+          for f in a2.get('findings') or []:
+              if f.get('severity') not in ('critical','high'): continue
+              txt=(' '.join(str(f.get(k) or '') for k in ('title','detail','suggested_fix'))).lower()
+              if any(k in txt for k in forbidden): bad2.append(f)
+          if bad2:
+              raise SystemExit('Rianalisi: ricomparse criticità amministrative improprie: '+json.dumps(bad2,ensure_ascii=False)[:1800])
+          print('OK rianalisi: nessuna regressione di scope')
+          print('REGRESSION TEST COMPLETATO CON SUCCESSO')
+          PY
